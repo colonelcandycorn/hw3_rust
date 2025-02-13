@@ -7,7 +7,7 @@
 //! This implementation uses zero-copy strings when
 //! reasonably possible to improve performance and reduce
 //! memory usage.
-//! 
+//!
 //! Words are separated by whitespace, and consist of a
 //! span of one or more consecutive letters (any Unicode
 //! code point in the "letter" class) with no internal
@@ -65,20 +65,29 @@ impl<'a> Bbow<'a> {
     /// assert_eq!(1, bbow.match_count("hello"));
     /// ```
     pub fn extend_from_text(mut self, target: &'a str) -> Self {
-        target.split_whitespace().filter_map(| word| {
-            let trimmed = word.trim_matches(|c: char| !c.is_alphabetic());
+        target
+            .split_whitespace()
+            .filter_map(|word| {
+                let trimmed = word.trim_matches(|c: char| !c.is_alphabetic());
 
-            if is_word(trimmed) { Some(trimmed) } else { None }
-        }).for_each(| word|{
-            let word =
-                if has_uppercase(word) {
+                if is_word(trimmed) {
+                    Some(trimmed)
+                } else {
+                    None
+                }
+            })
+            .for_each(|word| {
+                let word = if has_uppercase(word) {
                     Cow::from(word.to_lowercase())
                 } else {
                     Cow::from(word)
                 };
 
-            self.0.entry(word).and_modify(| count| { *count += 1}).or_insert(1);
-        });
+                self.0
+                    .entry(word)
+                    .and_modify(|count| *count += 1)
+                    .or_insert(1);
+            });
 
         self
     }
@@ -101,7 +110,7 @@ impl<'a> Bbow<'a> {
         *self.0.get(keyword).unwrap_or(&0usize)
     }
 
-    pub fn words(&'a self) -> impl Iterator<Item=&'a str> {
+    pub fn words(&'a self) -> impl Iterator<Item = &'a str> {
         self.0.keys().map(|w| w.as_ref())
     }
 
@@ -139,7 +148,6 @@ impl<'a> Bbow<'a> {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
-
 }
 
 #[cfg(test)]
