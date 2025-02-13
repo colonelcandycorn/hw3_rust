@@ -140,18 +140,6 @@ impl<'a> Bbow<'a> {
         self.0.is_empty()
     }
 
-    pub fn print_info(&self) {
-        for val in self.0.keys() {
-            match val {
-                Cow::Borrowed(borrow) => {
-                    println!("This value is borrowed <{borrow}>")
-                }
-                Cow::Owned(owned) => {
-                    println!("This value is owned <{owned}>")
-                }
-            }
-        }
-    }
 }
 
 #[cfg(test)]
@@ -162,12 +150,47 @@ mod tests {
     fn extend_should_create_bbow() {
         let test_str = "one twO two three";
         let my_bbow = Bbow::new().extend_from_text(test_str);
-        my_bbow.print_info();
 
         assert!(!my_bbow.is_empty());
         assert_eq!(3, my_bbow.len());
         assert_eq!(1, my_bbow.match_count("one"));
         assert_eq!(2, my_bbow.match_count("two"));
         assert_eq!(1, my_bbow.match_count("three"));
+    }
+
+    #[test]
+    fn words_with_punctuation_dont_count() {
+        let test_str = "one tw'o";
+
+        let my_bbow = Bbow::new().extend_from_text(test_str);
+
+        assert!(!my_bbow.is_empty());
+        assert_eq!(1, my_bbow.len());
+        assert_eq!(1, my_bbow.match_count("one"));
+        assert_eq!(0, my_bbow.match_count("tw'o"))
+    }
+
+    #[test]
+    fn capitalized_words_should_be_equivalent() {
+        let test_str = "one One oNe onE";
+
+        let my_bbow = Bbow::new().extend_from_text(test_str);
+
+        assert!(!my_bbow.is_empty());
+        assert_eq!(1, my_bbow.len());
+        assert_eq!(4, my_bbow.match_count("one"));
+    }
+
+    #[test]
+    fn capitlized_should_be_owned_and_regular_should_be_borrowed() {
+        let test_str = "one Two";
+
+        let my_bbow = Bbow::new().extend_from_text(test_str);
+
+        let (one_key, _) = my_bbow.0.get_key_value("one").unwrap();
+        let (two_key, _) = my_bbow.0.get_key_value("two").unwrap();
+
+        assert!(matches!(one_key, Cow::Borrowed(_)));
+        assert!(matches!(two_key, Cow::Owned(_)))
     }
 }
