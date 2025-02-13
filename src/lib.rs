@@ -193,4 +193,13 @@ mod tests {
         assert!(matches!(one_key, Cow::Borrowed(_)));
         assert!(matches!(two_key, Cow::Owned(_)))
     }
+
+    #[test]
+    fn match_count_should_return_0_with_bad_key() {
+        let test_str = "one";
+
+        let my_bbow = Bbow::new().extend_from_text(test_str);
+
+        assert_eq!(0, my_bbow.match_count("One"))
+    }
 }
